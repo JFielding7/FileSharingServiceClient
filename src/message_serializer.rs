@@ -1,6 +1,6 @@
 use std::cmp::min;
 use crate::message::Message::UserInfoMessage;
-use crate::message::{Message, FILE_SEND_REQUEST_MESSAGE, IPV4_CODE, IPV6_CODE, MESSAGE_BYTES, NAME_BYTES, USER_INFO_CODE};
+use crate::message::{Message, FILE_SEND_REQUEST_MESSAGE_CODE, IPV4_CODE, IPV6_CODE, MESSAGE_BYTES, NAME_BYTES, USER_INFO_MESSAGE_CODE};
 use crate::user_info::UserInfo;
 use bytes::{BufMut, BytesMut};
 use std::io::Read;
@@ -19,6 +19,7 @@ fn serialize_name(buffer: &mut BytesMut, name: &String) {
 
     println!("{}", buffer.len());
 }
+
 fn serialize_ip_addr(buffer: &mut BytesMut, ip_addr: IpAddr) {
     let octets: &[u8] = match ip_addr {
         V4(ip) => {
@@ -59,11 +60,11 @@ fn serialize_user_info(message_code: u8,
 }
 
 fn serialize_user_info_message(user: &UserInfo) -> BytesMut {
-    serialize_user_info(USER_INFO_CODE, user)
+    serialize_user_info(USER_INFO_MESSAGE_CODE, user)
 }
 
 fn serialize_file_send_request(user: &UserInfo) -> BytesMut {
-    serialize_user_info(FILE_SEND_REQUEST_MESSAGE, user)
+    serialize_user_info(FILE_SEND_REQUEST_MESSAGE_CODE, user)
 }
 
 pub fn serialize_message(message: Message) -> BytesMut {
@@ -75,3 +76,5 @@ pub fn serialize_message(message: Message) -> BytesMut {
     buffer.resize(MESSAGE_BYTES, 0);
     buffer
 }
+
+

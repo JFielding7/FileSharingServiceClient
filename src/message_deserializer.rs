@@ -1,7 +1,7 @@
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
 use std::net::IpAddr::{V4, V6};
 use bytes::{Buf, BytesMut};
-use crate::message::{Message, IPV4_SIZE, IPV6_SIZE, USER_INFO_CODE, IPV4_CODE, IPV6_CODE};
+use crate::message::{Message, IPV4_SIZE, IPV6_SIZE, IPV4_CODE, IPV6_CODE};
 use crate::message::Message::{FileSendRequest, UserInfoMessage};
 use crate::user_info::UserInfo;
 

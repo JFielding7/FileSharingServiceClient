@@ -3,12 +3,14 @@ mod user_info;
 mod message_serializer;
 mod message_deserializer;
 
+use std::collections::HashMap;
 use std::io;
 use std::io::prelude::*;
+use std::net::SocketAddr;
 use bytes::BytesMut;
 use tokio::io::{split, AsyncReadExt, AsyncWriteExt, ReadHalf};
 use tokio::net::TcpStream;
-use crate::message::Message::UserInfoMessage;
+use crate::message::Message::{FileSendRequest, UserInfoMessage};
 use crate::message::MESSAGE_BYTES;
 use crate::message_deserializer::deserialize;
 use crate::message_serializer::serialize_message;
@@ -20,26 +22,40 @@ fn read_line() -> io::Result<String>  {
     Ok(buffer)
 }
 
-fn process_message(buffer: BytesMut) {
+async fn accept_file(sender_addr: SocketAddr) -> io::Result<()> {
+    let stream = TcpStream::connect(sender_addr).await?;
+
+    let mut buffer = BytesMut::with_capacity(MESSAGE_BYTES);
+    buffer.resize(MESSAGE_BYTES, 0);
+
+    // loop {
+    //
+    // }
+
+    Ok(())
+}
+
+fn process_message(buffer: BytesMut, other_users: &mut HashMap<SocketAddr, UserInfo>) {
     println!("processing");
     match deserialize(buffer).unwrap() {
         UserInfoMessage(user) => {
-            println!("{:?}", user)
+            other_users.insert(user.socket_addr, user);
         }
-        _ => {}
+        FileSendRequest(user) => {
+
+        }
     }
 }
 
-async fn listen_to_server(mut reader: ReadHalf<TcpStream>) {
+async fn listen_to_server(mut reader: ReadHalf<TcpStream>) -> io::Result<()> {
+    let mut other_users = HashMap::new();
+
     loop {
         let mut buffer = BytesMut::with_capacity(MESSAGE_BYTES);
         buffer.resize(MESSAGE_BYTES, 0);
-        let bytes = reader.read(&mut buffer).await.unwrap();
+        reader.read_exact(&mut buffer).await?;
 
-        match bytes {
-            0 => break,
-            _ => process_message(buffer)
-        }
+        process_message(buffer, &mut other_users);
     }
 }
 
@@ -60,15 +76,5 @@ async fn main() -> io::Result<()> {
 
     read_task.await?;
 
-    // let user_info = UserInfo::new("bab".to_string(), stream.local_addr()?);
-    // let buffer = serialize_message(UserInfoMessage(user_info));
-    // println!("{}", stream.local_addr()?);
-    //
-    // stream.write_all(&buffer)?;
-    //
-    // let mut res = [0; 128];
-    // stream.read(&mut res)?;
-    //
-    // println!("{}", String::from_utf8(res.to_vec()).unwrap());
     Ok(())
 }
